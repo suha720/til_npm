@@ -1,130 +1,241 @@
-# 프로젝트 셋팅
+# Nivo Chart
 
-- public/index.html 정리
-- package.json 정리
-- index.js 정리
-- App.js 정리
-- index.css 정리
-- App.css 제거
-- css 폴더 생성/layout.css 생성
-- npm 관련 제거(test 등등)
+- https://nivo.rocks/
+- https://github.com/plouc/nivo#readme
 
-# 기본 ESLint, Prettier 설정
-
-## 1. ESLint
+## 1. 기본형 설치
 
 ```bash
-npm install eslint@latest -D
+npm i @nivo/core --force
 ```
+
+## 2. Line Chart 설치하기
 
 ```bash
-npm install eslint-config-react-app --save-dev --force
+npm i @nivo/line --force
 ```
 
-- 지금은 최신 버전 mjs 로 진행함.
+- 실제 회사에서는 fetch 로 호출해서 사용함.
 
-```bash
-npx eslint --init
-```
+```jsx
+import React, { useEffect, useState } from "react";
+import { ResponsiveLine } from "@nivo/line";
+import { LineData } from "../apis/line_data";
+// mock data
+function Line() {
+  // js 자리
+  const [data, setData] = useState([]);
+  // 데이터 부르는 함수 만들기
+  const getData = async () => {
+    try {
+      // fetch 를 이용한 데이터 호출
+      const res = await fetch("/line_data.json");
+      const result = await res.json();
+      // 데이터 갱신
+      setData(result);
+      console.log(result);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-## 2. prettier
+  // 비동기 최적화
+  useEffect(() => {
+    getData();
+  }, []);
 
-```bash
-npm i prettier -D
-```
-
-- .prettierrc.json 파일 생성
-
-```json
-{
-  "singleQuote": false,
-  "semi": true,
-  "useTabs": false,
-  "tabWidth": 2,
-  "trailingComma": "all",
-  "printWidth": 80,
-  "arrowParens": "avoid",
-  "endOfLine": "auto"
+  // jsx 자리
+  return (
+    <div>
+      <h1>Line 차트 예제</h1>
+      {/* 반응형이라 차트 크기를 줘야 보임. 안주면 안보임 */}
+      <div style={{ width: "100%", height: 400 }}>
+        <ResponsiveLine /* or Line for fixed dimensions */
+          data={data}
+          margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
+          yScale={{
+            type: "linear",
+            min: "auto",
+            max: "auto",
+            stacked: true,
+            reverse: false,
+          }}
+          axisBottom={{ legend: "transportation", legendOffset: 36 }}
+          axisLeft={{ legend: "count", legendOffset: -40 }}
+          pointSize={10}
+          pointColor={{ theme: "background" }}
+          pointBorderWidth={2}
+          pointBorderColor={{ from: "seriesColor" }}
+          pointLabelYOffset={-12}
+          enableTouchCrosshair={true}
+          useMesh={true}
+          legends={[
+            {
+              anchor: "bottom-right",
+              direction: "column",
+              translateX: 100,
+              itemWidth: 80,
+              itemHeight: 22,
+              symbolShape: "circle",
+            },
+          ]}
+        />
+      </div>
+    </div>
+  );
 }
+
+export default Line;
 ```
 
-## 3. ESLint 와 prettier 연결
+- 로컬스토리지로 우선 진행하기
+- 기억해야 할 사항
+  - `localstorage.getItem(이름)`
+  - `localstorage.setItem(이름)`
 
-```bash
-npm i  eslint-config-prettier -D
-npm i  eslint-plugin-prettier -D
-```
+- 로컬스토리지로 가져오기
 
-- `eslint.config.mjs` 설정 수정
-
-```mjs
-import js from "@eslint/js";
-import pluginReact from "eslint-plugin-react";
-import pluginPrettier from "eslint-plugin-prettier";
-import globals from "globals";
-import { defineConfig } from "eslint/config";
-
-export default defineConfig([
-  {
-    files: ["**/*.{js,jsx}"],
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
+```jsx
+import React, { useEffect, useState } from "react";
+import { ResponsiveLine } from "@nivo/line";
+import { LineData } from "../apis/line_data";
+// mock data
+function Line() {
+  // js 자리
+  const [data, setData] = useState([]);
+  // 데이터 부르는 함수 만들기
+  const getData = () => {
+    try {
+      // fetch 를 이용한 데이터 호출
+      const res = localStorage.getItem("line_data");
+      const json = JSON.parse(res);
+      // 데이터 갱신
+      setData(json);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  // 로컬스토리지에 데이터 저장하기
+  const saveData = () => {
+    const tempData = [
+      {
+        id: "norway",
+        data: [
+          { x: "햄버거", y: 5 },
+          { x: "치킨", y: 78 },
+          { x: "boat", y: 276 },
+          { x: "train", y: 55 },
+          { x: "subway", y: 144 },
+          { x: "bus", y: 216 },
+          { x: "car", y: 253 },
+          { x: "moto", y: 102 },
+          { x: "bicycle", y: 156 },
+          { x: "horse", y: 131 },
+          { x: "skateboard", y: 147 },
+          { x: "others", y: 232 },
+        ],
       },
-      globals: globals.browser,
-    },
-    plugins: {
-      react: pluginReact,
-      prettier: pluginPrettier,
-    },
-    rules: {
-      ...pluginReact.configs.recommended.rules,
-      "prettier/prettier": "warn",
-      "no-var": "warn",
-      "no-unused-vars": "warn",
-    },
-    settings: {
-      react: {
-        version: "detect",
-      },
-    },
-  },
-]);
+    ];
+    const jsData = JSON.stringify(tempData);
+    localStorage.setItem("line_data", jsData);
+  };
+  // 비동기 최적화
+  useEffect(() => {
+    getData();
+  }, []);
+
+  // jsx 자리
+  return (
+    <div>
+      <h1>Line 차트 예제</h1>
+      <button onClick={saveData}>localstorage 저장하기</button>
+      {/* 반응형이라 차트 크기를 줘야 보임. 안주면 안보임 */}
+      <div style={{ width: "100%", height: 400 }}>
+        <ResponsiveLine /* or Line for fixed dimensions */
+          data={data}
+          margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
+          yScale={{
+            type: "linear",
+            min: "auto",
+            max: "auto",
+            stacked: true,
+            reverse: false,
+          }}
+          axisBottom={{ legend: "transportation", legendOffset: 36 }}
+          axisLeft={{ legend: "count", legendOffset: -40 }}
+          pointSize={10}
+          pointColor={{ theme: "background" }}
+          pointBorderWidth={2}
+          pointBorderColor={{ from: "seriesColor" }}
+          pointLabelYOffset={-12}
+          enableTouchCrosshair={true}
+          useMesh={true}
+          legends={[
+            {
+              anchor: "bottom-right",
+              direction: "column",
+              translateX: 100,
+              itemWidth: 80,
+              itemHeight: 22,
+              symbolShape: "circle",
+            },
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default Line;
 ```
 
-- VSCode 의 settings.json 에 내용 추가(`Ctrl + ,`)
-
-```json
-  "eslint.useFlatConfig": true
-```
-
-- <img width="740" height="566" alt="Image" src="https://github.com/user-attachments/assets/0a729d3d-43e2-45a7-88f3-ef2e32774266" />
-
-## 4. 기본 npm 설치하기
-
-- emotion 설치
+## 3. Bar Chart 설치하기
 
 ```bash
-npm i @emotion/react
-npm i @emotion/styled
+npm i @nivo/bar --force
 ```
 
-- scss 설치
+- 응용예제
 
-```bash
-npm i sass -D
+```jsx
+import React, { useEffect, useState } from "react";
+import { ResponsiveBar } from "@nivo/bar";
+import { barDate } from "../apis/bar_data";
+
+function Bar() {
+  const [data, SetData] = useState([]);
+  useEffect(() => {
+    SetData([...barDate]);
+  }, []);
+  return (
+    <div>
+      <h1>Bar 차트 예제</h1>
+      <div style={{ width: "100%", height: 600 }}>
+        <ResponsiveBar /* or Bar for fixed dimensions */
+          data={data}
+          keys={["burger", "sandwich", "kebab", "fries", "donut"]}
+          indexBy="country"
+          labelSkipWidth={12}
+          labelSkipHeight={12}
+          legends={[
+            {
+              dataFrom: "keys",
+              anchor: "bottom-right",
+              direction: "column",
+              translateX: 120,
+              itemsSpacing: 3,
+              itemWidth: 100,
+              itemHeight: 16,
+            },
+          ]}
+          axisBottom={{ legend: "country (indexBy)", legendOffset: 32 }}
+          axisLeft={{ legend: "food", legendOffset: -40 }}
+          margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export default Bar;
 ```
-
-- react-router-dom 설치
-
-```bash
-npm i react-router-dom
-```
-
-## 5. react-router-dom 의 라우터 셋팅
-
-- App.jsx 에 작성(Router > Routes > Route)
