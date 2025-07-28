@@ -1,241 +1,175 @@
-# Nivo Chart
+# 날짜를 다루는 라이브러리
 
-- https://nivo.rocks/
-- https://github.com/plouc/nivo#readme
+## 1. moment
 
-## 1. 기본형 설치
+- https://momentjs.com
+- https://www.npmjs.com/package/moment
+- `npm i moment`
 
-```bash
-npm i @nivo/core --force
-```
+### 1.2. 참조 사이트
 
-## 2. Line Chart 설치하기
+- [참조](https://bolob.tistory.com/entry/JavaScript-Momentjs-%EC%82%AC%EC%9A%A9%EB%B2%95-%ED%98%84%EC%9E%AC-%EB%82%A0%EC%A7%9C-%EB%82%A0%EC%A7%9C-%ED%8F%AC%EB%A7%B7-%EB%82%A0%EC%A7%9C-%EB%B9%84%EA%B5%90)
 
-```bash
-npm i @nivo/line --force
-```
-
-- 실제 회사에서는 fetch 로 호출해서 사용함.
+### 1.3. 예제
 
 ```jsx
-import React, { useEffect, useState } from "react";
-import { ResponsiveLine } from "@nivo/line";
-import { LineData } from "../apis/line_data";
-// mock data
-function Line() {
-  // js 자리
-  const [data, setData] = useState([]);
-  // 데이터 부르는 함수 만들기
-  const getData = async () => {
-    try {
-      // fetch 를 이용한 데이터 호출
-      const res = await fetch("/line_data.json");
-      const result = await res.json();
-      // 데이터 갱신
-      setData(result);
-      console.log(result);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+import moment from "moment";
 
-  // 비동기 최적화
-  useEffect(() => {
-    getData();
-  }, []);
-
+// 1. 서버에서 Response 로 된 데이터
+const getData = [
+  {
+    id: 1,
+    title: "swaggr 완료",
+    createAt: "2024-12-13T10:00:00Z",
+  },
+  {
+    id: 2,
+    title: "react 완료",
+    createAt: "2024-12-18T10:00:00Z",
+  },
+];
+function App() {
+  // js자리
+  const today = moment().format("YYYY-MM-DD");
+  // console.log(today);
+  const startDay = moment("2025-07-01");
+  const endDay = moment("2025-07-28");
   // jsx 자리
   return (
     <div>
-      <h1>Line 차트 예제</h1>
-      {/* 반응형이라 차트 크기를 줘야 보임. 안주면 안보임 */}
-      <div style={{ width: "100%", height: 400 }}>
-        <ResponsiveLine /* or Line for fixed dimensions */
-          data={data}
-          margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-          yScale={{
-            type: "linear",
-            min: "auto",
-            max: "auto",
-            stacked: true,
-            reverse: false,
-          }}
-          axisBottom={{ legend: "transportation", legendOffset: 36 }}
-          axisLeft={{ legend: "count", legendOffset: -40 }}
-          pointSize={10}
-          pointColor={{ theme: "background" }}
-          pointBorderWidth={2}
-          pointBorderColor={{ from: "seriesColor" }}
-          pointLabelYOffset={-12}
-          enableTouchCrosshair={true}
-          useMesh={true}
-          legends={[
-            {
-              anchor: "bottom-right",
-              direction: "column",
-              translateX: 100,
-              itemWidth: 80,
-              itemHeight: 22,
-              symbolShape: "circle",
-            },
-          ]}
-        />
+      <h1>Moment 라이브러리</h1>
+      <div>
+        <p>오늘은 {today} 입니다.</p>
+      </div>
+      <div>
+        <h2>백엔드 데이터 날짜 출력</h2>
+        {getData.map(item => {
+          return (
+            <p key={item.id}>
+              아이디: {item.id} / 제목: {item.title} <br />
+              등록된 날짜:
+              {moment(item.createAt).format("YYYY-MM-DD")}
+              <br />
+              등록된 날짜로 부터 5일 후:
+              {moment(item.createAt).add(5, "days").format("YYYY-MM-DD")}
+            </p>
+          );
+        })}
+      </div>
+      <div>
+        <h2>시간이 얼마나 지났는지 출력</h2>
+        {getData.map(item => {
+          return (
+            <p key={item.id}>
+              아이디: {item.id} / 제목: {item.title}
+              <br />
+              날짜: {moment(item.createAt).format("YYYY-MM-DD")}
+              <br />
+              지나간 날짜 :{moment(item.createAt).fromNow()}
+            </p>
+          );
+        })}
+      </div>
+      <div>
+        <h2>현재로 부터 3시간 후</h2>
+        <div>{moment().add(3, "hour").format("HH:mm:ss")}</div>
+      </div>
+      <div>
+        <h2>시간 차이 계산</h2>
+        <div>날짜 차이 : {endDay.diff(startDay, "day")} 차이남</div>
+        <div>주간 차이 : {endDay.diff(startDay, "weeks")} 차이남 </div>
+      </div>
+      <div>
+        <h2> 날짜 비교</h2>
+        <div>
+          오늘 은 2025-08-01 전인가?
+          {moment("2025-07-28").isBefore("2025-08-01")
+            ? "네 맞습니다."
+            : "지났습니다."}
+        </div>
+        <div>
+          오늘 은 2025-07-01 지나갔는지?
+          {moment("2025-07-28").isAfter("2025-07-01")
+            ? "네 맞습니다. 지났습니다."
+            : "아닙니다. 안지났습니다."}
+        </div>
       </div>
     </div>
   );
 }
 
-export default Line;
+export default App;
 ```
 
-- 로컬스토리지로 우선 진행하기
-- 기억해야 할 사항
-  - `localstorage.getItem(이름)`
-  - `localstorage.setItem(이름)`
+## 2. dayjs
 
-- 로컬스토리지로 가져오기
+- https://day.js.org/
+- https://www.npmjs.com/package/dayjs
+- `npm i dayjs`
+
+### 2.1. 참조
+
+- [참조](https://velog.io/@hongsoom/Library-day.js-%EB%82%A0%EC%A7%9C-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)
+
+### 2.2. 응용 예제
 
 ```jsx
-import React, { useEffect, useState } from "react";
-import { ResponsiveLine } from "@nivo/line";
-import { LineData } from "../apis/line_data";
-// mock data
-function Line() {
-  // js 자리
-  const [data, setData] = useState([]);
-  // 데이터 부르는 함수 만들기
-  const getData = () => {
-    try {
-      // fetch 를 이용한 데이터 호출
-      const res = localStorage.getItem("line_data");
-      const json = JSON.parse(res);
-      // 데이터 갱신
-      setData(json);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  // 로컬스토리지에 데이터 저장하기
-  const saveData = () => {
-    const tempData = [
-      {
-        id: "norway",
-        data: [
-          { x: "햄버거", y: 5 },
-          { x: "치킨", y: 78 },
-          { x: "boat", y: 276 },
-          { x: "train", y: 55 },
-          { x: "subway", y: 144 },
-          { x: "bus", y: 216 },
-          { x: "car", y: 253 },
-          { x: "moto", y: 102 },
-          { x: "bicycle", y: 156 },
-          { x: "horse", y: 131 },
-          { x: "skateboard", y: 147 },
-          { x: "others", y: 232 },
-        ],
-      },
-    ];
-    const jsData = JSON.stringify(tempData);
-    localStorage.setItem("line_data", jsData);
-  };
-  // 비동기 최적화
-  useEffect(() => {
-    getData();
-  }, []);
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
-  // jsx 자리
+// 서버에서 Response 된 데이터
+const getData = [
+  {
+    id: 1,
+    title: "swaggr 완료",
+    createAt: "2024-12-13T10:00:00Z",
+  },
+  {
+    id: 2,
+    title: "react 완료",
+    createAt: "2024-12-18T10:00:00Z",
+  },
+];
+
+function App() {
+  // 오늘의 날짜
+  const todayDayjs = dayjs().format("YYYY-MM-DD");
   return (
     <div>
-      <h1>Line 차트 예제</h1>
-      <button onClick={saveData}>localstorage 저장하기</button>
-      {/* 반응형이라 차트 크기를 줘야 보임. 안주면 안보임 */}
-      <div style={{ width: "100%", height: 400 }}>
-        <ResponsiveLine /* or Line for fixed dimensions */
-          data={data}
-          margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-          yScale={{
-            type: "linear",
-            min: "auto",
-            max: "auto",
-            stacked: true,
-            reverse: false,
-          }}
-          axisBottom={{ legend: "transportation", legendOffset: 36 }}
-          axisLeft={{ legend: "count", legendOffset: -40 }}
-          pointSize={10}
-          pointColor={{ theme: "background" }}
-          pointBorderWidth={2}
-          pointBorderColor={{ from: "seriesColor" }}
-          pointLabelYOffset={-12}
-          enableTouchCrosshair={true}
-          useMesh={true}
-          legends={[
-            {
-              anchor: "bottom-right",
-              direction: "column",
-              translateX: 100,
-              itemWidth: 80,
-              itemHeight: 22,
-              symbolShape: "circle",
-            },
-          ]}
-        />
+      <h1>Dayjs 활용 날짜관련</h1>
+      <div>
+        <p>오늘은 {todayDayjs}</p>
+        {getData.map(item => {
+          return (
+            <p key={item.id}>
+              아이디 : {item.id} 제목 : {item.title} 날짜 :{" "}
+              {dayjs(item.createAt).format("YYYY-MM-DD")}
+            </p>
+          );
+        })}
+
+        <h2>Dayjs 를 활용한 5일 뒤 날짜 계산하기 </h2>
+        {getData.map(item => {
+          return (
+            <p key={item.id}>
+              아이디 : {item.id} 제목 : {item.title} 5일 뒤의 날짜 :{" "}
+              {dayjs(item.createAt).add(5, "day").format("YYYY-MM-DD")}
+            </p>
+          );
+        })}
+        <h3>moment 를 활용한 시간이 얼마나 지났는지? </h3>
+        {getData.map(item => {
+          return (
+            <p key={item.id}>
+              아이디 : {item.id} 제목 : {item.title} 얼마나 지났는지 :{" "}
+              {dayjs(item.createAt).fromNow()}
+            </p>
+          );
+        })}
       </div>
     </div>
   );
 }
-
-export default Line;
-```
-
-## 3. Bar Chart 설치하기
-
-```bash
-npm i @nivo/bar --force
-```
-
-- 응용예제
-
-```jsx
-import React, { useEffect, useState } from "react";
-import { ResponsiveBar } from "@nivo/bar";
-import { barDate } from "../apis/bar_data";
-
-function Bar() {
-  const [data, SetData] = useState([]);
-  useEffect(() => {
-    SetData([...barDate]);
-  }, []);
-  return (
-    <div>
-      <h1>Bar 차트 예제</h1>
-      <div style={{ width: "100%", height: 600 }}>
-        <ResponsiveBar /* or Bar for fixed dimensions */
-          data={data}
-          keys={["burger", "sandwich", "kebab", "fries", "donut"]}
-          indexBy="country"
-          labelSkipWidth={12}
-          labelSkipHeight={12}
-          legends={[
-            {
-              dataFrom: "keys",
-              anchor: "bottom-right",
-              direction: "column",
-              translateX: 120,
-              itemsSpacing: 3,
-              itemWidth: 100,
-              itemHeight: 16,
-            },
-          ]}
-          axisBottom={{ legend: "country (indexBy)", legendOffset: 32 }}
-          axisLeft={{ legend: "food", legendOffset: -40 }}
-          margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
-        />
-      </div>
-    </div>
-  );
-}
-
-export default Bar;
+export default App;
 ```
