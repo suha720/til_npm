@@ -1,0 +1,10 @@
+.visual-slide {
+  width: 80%;
+  margin: 0 auto;
+  background-color: cyan;
+  min-height: 200px;
+}
+.sw-viusal {
+  width: 100%;
+  height: 1005;
+}
