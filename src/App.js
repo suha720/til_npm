@@ -1,4 +1,7 @@
+import AuthState from "./AuthState";
+import CounterAtom from "./components/CounterAtom";
 import Header from "./components/layout/Header";
+import TodoList from "./components/TodoList";
 import JoinPage from "./pages/JoinPage";
 import Schedule from "./pages/Schedule";
 import Slide from "./pages/Slide";
@@ -6,8 +9,9 @@ import Slide from "./pages/Slide";
 function App() {
   return (
     <div>
-      <Header></Header>
-      <JoinPage />
+      <CounterAtom />
+      <TodoList />
+      <AuthState />
     </div>
   );
 }
