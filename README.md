@@ -378,5 +378,5 @@ export default LoginPage;
 
 ## 9. 로그인 없이 페이지 접근시 처리
 
-- 강제로 navigate("/)
+- 강제로 navigate("/login)
 - 조건문으로 안내메시지 및 버튼으로 이동권장
