@@ -1,292 +1,295 @@
-# Openai
+# axios(필수이해)
 
-- https://platform.openai.com/docs/overview
+- xhr, promise, fetch 로 다루던 `비동기 통신을 대체`함.
+- 실무에서는 fetch 아니면 axios 를 활용함.
+- https://axios-http.com/kr/docs/intro
 
-## 1. 회원가입 하기
+## 1. CRUD 라이브러리
 
-- https://platform.openai.com/docs/overview
-- `구글 계정`이나 이메일 주소로 회원가입
-- 이메일 인증 처리
+- Create : Post (내용추가)
+- Read : Get (내용읽기)
+- Update : Put(전체 내용 수정), Patch(일부분만 수정)
+- Delete : Delete(내용 삭제)
 
-## 2. 결제 등록하기
+## 2. 백엔드 연동
 
-- https://platform.openai.com/settings/organization/billing/overview
-- Billing > Payment methods 카드등록
-- Add payment method 에서 여러개 가능함.
+- Postman
+- Swagger : 백엔드에서 구축해줘야 사용가능함.
 
-## 3. API 키 발급하기
+## 3. 설치
 
-- 카드등록 완료후 `https://platform.openai.com/api-keys` 관리
-- 화면 오른쪽 상단의 Create new Scret key 버튼으로 여러개 등록 가능
-- Key 값은 ㅎ나번만 보여주므로 반드시 보관해서 별도로 보관
-
-## 4. 실습 (감정 분석 서비스)
-
-```env
-REACT_APP_OPENAI_API_KEY=키값
+```bash
+npm install axios
 ```
 
+## 4. 폴더구조
+
+- 일반적으로 `/src/apis` 폴더 추천
+
+## 5. axios 권장하는 코딩 자리 및 순서
+
+- useEffect 자리(화면 출력시 호출)에 작성 및 호출 권장
+
+### 5.1. 기본코드
+
+- 샘플 api : `https://jsonplaceholder.typicode.com`
+
+#### 5.1.1. fetch 실행시
+
 ```jsx
-// 주석 처리 전
-import React, { useState } from "react";
+import { useEffect } from "react";
 
 function App() {
-  const [mood, setMood] = useState("");
-  const [analysis, setAnalysis] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-    if (!mood.trim()) return;
-
-    setIsLoading(true);
-    setAnalysis("");
-
-    try {
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            messages: [
-              {
-                role: "system",
-                content:
-                  "당신은 감정 분석 전문가입니다. 사용자의 기분을 분석하고 따뜻하고 건설적인 조언을 제공해주세요. 한국어로 답변해주세요.",
-              },
-              {
-                role: "user",
-                content: `다음과 같은 기분을 분석해주세요: "${mood}"`,
-              },
-            ],
-            max_tokens: 300,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("API 요청 실패");
-      }
-
-      const data = await response.json();
-      setAnalysis(data.choices[0].message.content);
-    } catch (error) {
-      console.error("Error:", error);
-      setAnalysis(
-        "죄송합니다. 분석 중 오류가 발생했습니다. 다시 시도해주세요.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>💭 기분 분석 서비스</h1>
-        <p>현재 기분을 입력하면 AI가 분석해드려요</p>
-      </header>
-
-      <div className="mood-container">
-        <form onSubmit={handleSubmit} className="mood-form">
-          <div className="input-group">
-            <label htmlFor="mood-input">
-              현재 기분을 자유롭게 표현해주세요:
-            </label>
-            <textarea
-              id="mood-input"
-              value={mood}
-              onChange={e => setMood(e.target.value)}
-              placeholder="예: 오늘 회사에서 상사한테 혼났는데, 집에 와서도 계속 신경 쓰여요..."
-              disabled={isLoading}
-              rows="4"
-            />
-          </div>
-          <button type="submit" disabled={isLoading || !mood.trim()}>
-            {isLoading ? "분석 중..." : "기분 분석하기"}
-          </button>
-        </form>
-
-        {isLoading && (
-          <div className="loading">
-            <div className="spinner"></div>
-            <p>AI가 당신의 기분을 분석하고 있어요...</p>
-          </div>
-        )}
-
-        {analysis && !isLoading && (
-          <div className="analysis-result">
-            <h3>📊 기분 분석 결과</h3>
-            <div className="analysis-content">
-              {analysis.split("\n").map((line, index) => (
-                <p key={index}>{line}</p>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  // js 자리
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/todos")
+      .then(response => response.json())
+      .then(json => console.log(json));
+  }, []);
+  // jsx 자리
+  return <div>App</div>;
 }
 
 export default App;
 ```
 
-## 5. 옵션 참조용
+#### 5.1.2. axios 실행시
 
 ```jsx
-// 옵션 추가
-import { useState } from "react";
+import axios from "axios";
+import { useEffect } from "react";
 
 function App() {
-  // 사용자의 기분을 글로써 입력하는 state
-  const [mood, setMood] = useState("");
-
-  // OpenAI 에서 분석한 내용 출력 state
-  const [analysis, setAnalysis] = useState("");
-
-  // 분석하는 비동기로 진행이 됨. 로딩 상태 관리
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 사용자가 form 에 입력한 내용을 submit 했을 때 실행됨.
-  // 비동기로 진행되므로 async .... await... 사용함.
-
-  const handleSubmit = async e => {
-    e.preventDefault(); // 웹브라우저 새로고침 방지
-
-    // 감정을 입력하지 않은 공백 상태라면 함수를 종료
-    if (!mood.trim()) return;
-
-    // 로딩창을 보여줌.
-    setIsLoading(true);
-    // 기존 분석글을 공백으로 출력
-    setAnalysis("");
-
-    try {
-      // fetch 로 데이터를 전달 즉, request 하고, response 대기
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST", // 글을 보냈다.
-          // 옵션들
-          // 답변의 길이를 제한함. 500 이상이면 긴 답변
-          max_tokens: 500,
-          // 창의적인 답변
-          // 0 에 가까울수로 딱딱하고 정확한 표현
-          // 1 에 가까울수로 부드럽고 창의적 표현
-          // 2 에 가까울수로 자유롭고 어뚱한 표현
-          temperature: 2,
-          // 확률선택
-          // 1 : 모든 단어 중에서 고름
-          // 0.5 : 확륭이 높은 단어 몇 개 중에서만 고름
-          top_p: 1,
-          // 몇 개의 답을 할지
-          // 3 가지 스타일의 답변을 준다.
-          n: 3,
-          // 새로운 주제를 GPT 가 제시할지 말지 주는 점수
-          presence_penalty: 2.0,
-          // 반복 방지로서 동일한 단어가 계속 반복되지 않도록 제어
-          frequency_penalty: 0.5,
-
-          // 아래 항목은 어떠한 형태로 내용을 보냈다.
-          headers: {
-            "Content-Type": "application/json", // JSON 형태이다.
-            // 나의 자격 증명으로서 허가된 키로 요청한다.
-            Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
-          },
-          // 아래는 실제로 보낼 내용
-          // JSON.stringify: JSON 글자로 변환한다.
-          body: JSON.stringify({
-            // ChatGPT 의 엔진 종류
-            // : gpt-3.5-turbo(빠르고 저렴)
-            // : gpt-4(더 똑똑하고 이해력 높음 - 복잡한 문제 해결)
-            // : gpt-o(텍스트, 이미지, 음성까지 처리 - 사진으로 설명)
-            model: "gpt-3.5-turbo",
-            // 필요로 한 프롬프트를 전달함
-            messages: [
-              {
-                role: "system", // ChatGPT 역할 부여
-                content:
-                  "당신은 감정 분석 전문가입니다. 사용자의 기분을 분석하고 따뜻하고 건설적인 조언을 제공해주세요. 한국어로 답변해주세요.",
-              },
-              {
-                role: "user", // 사용자 입력내용을 작성해줌.
-                content: `한글로 답변을 주는 분석으로 해줘. 다음과 같은 기분을 분석해주세요: "${mood}"`,
-              },
-            ],
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("API 요청 실패");
+  // js 자리
+  useEffect(() => {
+    const getTodos = async () => {
+      try {
+        const res = await axios.get(
+          "https://jsonplaceholder.typicode.com/todos",
+        );
+        console.log(res.data);
+      } catch (error) {
+        console.log(error);
       }
-
-      const data = await response.json();
-      setAnalysis(data.choices[0].message.content);
-    } catch (error) {
-      console.error("Error:", error);
-      setAnalysis(
-        "죄송합니다. 분석 중 오류가 발생했습니다. 다시 시도해주세요.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>💭 기분 분석 서비스</h1>
-        <p>현재 기분을 입력하면 AI가 분석해드려요</p>
-      </header>
-
-      <div className="mood-container">
-        <form onSubmit={handleSubmit} className="mood-form">
-          <div className="input-group">
-            <label htmlFor="mood-input">
-              현재 기분을 자유롭게 표현해주세요:
-            </label>
-            <textarea
-              id="mood-input"
-              value={mood}
-              onChange={e => setMood(e.target.value)}
-              placeholder="예: 오늘 회사에서 상사한테 혼났는데, 집에 와서도 계속 신경 쓰여요..."
-              disabled={isLoading}
-              rows="4"
-            />
-          </div>
-          <button type="submit" disabled={isLoading || !mood.trim()}>
-            {isLoading ? "분석 중..." : "기분 분석하기"}
-          </button>
-        </form>
-
-        {isLoading && (
-          <div className="loading">
-            <div className="spinner"></div>
-            <p>AI가 당신의 기분을 분석하고 있어요...</p>
-          </div>
-        )}
-
-        {analysis && !isLoading && (
-          <div className="analysis-result">
-            <h3>📊 기분 분석 결과</h3>
-            <div className="analysis-content">
-              {analysis.split("\n").map((line, index) => (
-                <p key={index}>{line}</p>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    };
+    getTodos();
+  }, []);
+  // jsx 자리
+  return <div>App</div>;
 }
 
 export default App;
+```
+
+### 5.2. 실전 코드
+
+- 실제로 외부데이터 연동은 상당히 많은 경우 수가 있음.
+- 컴포넌트는 그냥 자료를 출력, 추가, 삭제 역할만
+- 백엔드 연동은 `별도의 파일로 분리`해서 호출만 해줌.
+
+#### 5.2.1. 데이터 호출 내용 분리 과정
+
+- 최소한 외부 함수로 빼준다.
+
+```jsx
+import axios from "axios";
+import { useEffect } from "react";
+
+function App() {
+  // js 자리
+  // 할일 목록 비동기 통신 함수
+  const getTodos = async () => {
+    try {
+      const res = await axios.get("https://jsonplaceholder.typicode.com/todos");
+      console.log(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getTodos();
+  }, []);
+  // jsx 자리
+  return <div>App</div>;
+}
+
+export default App;
+```
+
+- 파일로 함수를 추출하시길 권장
+- `/src/apis/todoApi.js` 생성
+
+```js
+import axios from "axios";
+
+// 할일 목록 비동기 통신 함수
+export const getTodos = async () => {
+  try {
+    const res = await axios.get("https://jsonplaceholder.typicode.com/todos");
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+```
+
+- 사용하기
+
+```jsx
+import { useEffect } from "react";
+import { getTodos } from "./apis/todoApi";
+
+function App() {
+  // js 자리
+  useEffect(() => {
+    getTodos();
+  }, []);
+  // jsx 자리
+  return <div>App</div>;
+}
+
+export default App;
+```
+
+- API 주소도 가능하면 별도로 분리한다.
+
+```js
+import axios from "axios";
+// API 주소
+export const todoURL = "https://jsonplaceholder.typicode.com/todos";
+
+// 할일 목록 비동기 통신 함수
+export const getTodos = async () => {
+  try {
+    const res = await axios.get(todoURL);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+```
+
+#### 5.2.2. 다양한 API 작성하기
+
+```js
+import axios from "axios";
+// API 주소
+const todoURL = "https://jsonplaceholder.typicode.com/todos";
+
+// 할일 목록 전체 호출하기
+const getTodos = async () => {
+  try {
+    const res = await axios.get(todoURL);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+// 할일 목록 한개만 호출하기
+const getTodo = async id => {
+  try {
+    const res = await axios.get(`${todoURL}/${id}`);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+// 할일 1개 추가하기 : post
+const postTodo = async data => {
+  try {
+    const res = axios.post(todoURL, data);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+// 할일 1개 삭제하기 : delete
+const deleteTodo = async id => {
+  try {
+    const res = await axios.delete(`${todoURL}/${id}`);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+// 할일 전체 업데이트
+const putTodo = async (id, data) => {
+  try {
+    const res = await axios.put(`${todoURL}/${id}`, data);
+    console.log(res);
+  } catch (error) {
+    console.log(error);
+  }
+};
+// 할일 일부분 수정
+const patchTodo = async (id, { title, completed }) => {
+  try {
+    const res = await axios.patch(`${todoURL}/${id}`, { title, completed });
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export { getTodos, getTodo, putTodo, deleteTodo, patchTodo };
+```
+
+#### 5.2.3. photo API 작성해 보기
+
+- /src/apis/photoApi.js 생성
+
+```js
+import axios from "axios";
+
+const photoUrl = "https://jsonplaceholder.typicode.com/photos";
+const getPhotos = async () => {
+  try {
+    const res = axios.get(photoUrl);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const getPhoto = async id => {
+  try {
+    const res = axios.get(`${photoUrl}/${id}`);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const postPhoto = async data => {
+  try {
+    const res = axios.post(photoUrl, data);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const deletePhoto = async id => {
+  try {
+    const res = axios.delete(`${photoUrl}/${id}`);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const putPhoto = async (id, data) => {
+  try {
+    const res = axios.put(`${photoUrl}/${id}`, data);
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const patchPhoto = async (id, {}) => {
+  try {
+    const res = axios.patch(`${photoUrl}/${id}`, {});
+    console.log(res.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+export { getPhoto, getPhotos, postPhoto, putPhoto, deletePhoto, patchPhoto };
 ```
