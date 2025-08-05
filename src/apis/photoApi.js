@@ -13,7 +13,9 @@ const getPhoto = async id => {
   try {
     const res = await axios.get(`${photoURL}/${id}`);
     console.log(res.data);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 const postPhoto = async data => {
   try {
