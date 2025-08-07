@@ -1,18 +1,8 @@
-# Daum Post
-
-- https://www.npmjs.com/package/react-daum-postcode
-- 설치 : `npm i react-daum-postcode`
-- 참조 : https://infodon.tistory.com/117
-
-## 1. DAum Post 실습
-
-- /src/components/Join.jsx 파일 생성
-
-```jsx
 import { useForm } from "react-hook-form";
 
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import DaumPostcodeEmbed, { useDaumPostcodePopup } from "react-daum-postcode";
 
 // 회원가입 데이터의 초기값
 const initData = {
@@ -21,6 +11,8 @@ const initData = {
   userpass: "",
   userphone: "",
   address1: "",
+  address2: "",
+  zipcode: "",
 };
 // 회원가입 유효성 검사 스키마 설정
 const JoinSchema = yup.object({
@@ -42,7 +34,8 @@ const JoinSchema = yup.object({
     .string()
     .required("전화번호는 필수입니다.")
     .matches(/^[0-9]{3}-[0-9]{3,4}-[0-9]{4}$/, "유효한 전화번호를 입력하세요."),
-  address1: yup.string().required("주소는 필수입니다."),
+  address1: yup.string().required("우편번호는 필수입니다."),
+  address2: yup.string().required("상세주소는 필수입니다."),
 });
 
 const Join = () => {
@@ -76,6 +69,39 @@ const Join = () => {
     }
     return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`;
   };
+
+  // 우편번호검색 버튼을 클릭시 주소 검색창 출력
+  // Daum Post 팝업
+  const scriptUrl =
+    "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+  const open = useDaumPostcodePopup(scriptUrl);
+  const handleClickZipCode = () => {
+    // 웹브라우저에서 새창열어라
+    open({ onComplete: handleCompletedZip });
+  };
+  // 사용자가 우편번호를 선택완료할 때 실행될 함수
+  const handleCompletedZip = data => {
+    // console.log(data);
+    let fullAddress = data.address;
+    let extraAddress = "";
+
+    if (data.addressType === "R") {
+      if (data.bname !== "") {
+        extraAddress += data.bname;
+      }
+      if (data.buildingName !== "") {
+        extraAddress +=
+          extraAddress !== "" ? `, ${data.buildingName}` : data.buildingName;
+      }
+      fullAddress += extraAddress !== "" ? ` (${extraAddress})` : "";
+    }
+
+    // console.log("fullAddress : ", fullAddress);
+    // console.log("zip : ", data.zonecode);
+    setValue("address1", fullAddress);
+    setValue("zipcode", data.zonecode);
+  };
+
   // 전송할 데이터
   const onSubmitJoin = data => {
     console.log(data);
@@ -117,6 +143,10 @@ const Join = () => {
           )}
         </div>
         <div>
+          <label>우편번호</label>
+          <input type="text" readOnly={true} {...register("zipcode")} />
+        </div>
+        <div>
           <label>주소</label>
           <input type="text" {...register("address1")} />
           {errors.address1?.message && (
@@ -124,8 +154,17 @@ const Join = () => {
           )}
         </div>
         <div>
-          <label>우편번호</label>
+          <label>주소검색</label>
           {/* daumpost 사용예정 */}
+          {/* <DaumPostcodeEmbed onComplete={handleCompletedZip} /> */}
+          <button onClick={handleClickZipCode}>우편번호검색</button>
+        </div>
+        <div>
+          <label>상세주소</label>
+          <input type="text" {...register("address2")} />
+          {errors.address2?.message && (
+            <span style={{ color: "red" }}> {errors.address2?.message} </span>
+          )}
         </div>
         <div>
           <button type="submit">회원가입</button>
@@ -137,5 +176,3 @@ const Join = () => {
 };
 
 export default Join;
-```
-## 2. Daum Post 적용
