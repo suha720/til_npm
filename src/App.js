@@ -1,10 +1,10 @@
-import AniPage from "./pages/AniPage";
+import Framer from "./pages/Framer";
 
 const App = () => {
   return (
     <div>
       <h1>Anime</h1>
-      <AniPage />
+      <Framer />
     </div>
   );
 };
